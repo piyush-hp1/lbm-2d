@@ -30,3 +30,27 @@ for rho, u in test_cases:
     velocity_y=(feq*c[:,1]).sum()/rho
     assert np.isclose(velocity_y,u[1]),"Check 3 failed: The velocity in y direction is not equal to u[1]"
 print("Equilibrium tests passes")
+
+def stream(f):
+    for i in range(9):
+        f[i]=np.roll(f[i], shift=(c[i,0],c[i,1]), axis=(0,1))
+    return f
+
+nx, ny = 5, 5
+f = np.zeros((9, nx, ny))   # empty grid: 9 sheets of 5x5 zeros
+f[:, 2, 2] = 1.0            # one packet in every direction at the centre
+
+mass_before= f.sum()
+f= stream(f)
+assert np.isclose(f.sum(),mass_before),"Streaming test 1 failed: mass changed"
+
+for i in range(9):
+    x = 2 + c[i, 0]
+    y = 2 + c[i, 1]
+    assert np.isclose(f[i, x, y], 1.0), "Streaming test 2 failed: direction {i} not where expected"
+
+for _ in range(4):
+    f = stream(f)
+assert np.allclose(f[:, 2, 2], 1.0), "Streaming test 3 failed: packets did not return to the centre"
+
+print("Streaming tests passed")
